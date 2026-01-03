@@ -13,3 +13,6 @@
 - [x] Database schema for conversations and messages
 - [x] Backend API for chat operations
 - [x] LLM integration for Amadeus AI persona
+
+## New Features
+- [x] Translate all website text to Chinese (except "AMADEUS")

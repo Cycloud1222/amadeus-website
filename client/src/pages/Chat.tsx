@@ -114,7 +114,7 @@ export default function Chat() {
       setIsRecording(true);
     } catch (error) {
       console.error("Error accessing microphone:", error);
-      alert("Could not access microphone. Please check your permissions.");
+      alert("无法访问麦克风。请检查您的权限设置。");
     }
   };
 
@@ -144,11 +144,11 @@ export default function Chat() {
               </Button>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                <h1 className="text-xl font-bold neon-glow-pink">AMADEUS INTERFACE</h1>
+                <h1 className="text-xl font-bold neon-glow-pink">AMADEUS 界面</h1>
               </div>
             </div>
             <div className="text-sm text-muted-foreground font-mono">
-              <span className="text-primary">STATUS:</span> CONNECTED
+              <span className="text-primary">状态：</span>已连接
             </div>
           </div>
         </div>
@@ -165,10 +165,10 @@ export default function Chat() {
             ) : messages.length === 0 ? (
               <div className="text-center py-20 space-y-4">
                 <div className="text-6xl mb-4">🤖</div>
-                <h2 className="text-2xl font-bold neon-glow-cyan">READY TO CONNECT</h2>
+                <h2 className="text-2xl font-bold neon-glow-cyan">准备连接</h2>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  Start a conversation with Amadeus. Ask questions about science, time travel, 
-                  or just have a casual chat.
+                  开始与 AMADEUS 对话。询问有关科学、时间旅行的问题，
+                  或者只是随便聊聊。
                 </p>
               </div>
             ) : (
@@ -186,10 +186,10 @@ export default function Chat() {
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-xs font-bold text-primary uppercase">
-                        {msg.role === "user" ? "YOU" : "AMADEUS"}
+                        {msg.role === "user" ? "你" : "AMADEUS"}
                       </span>
                       <span className="text-xs text-muted-foreground font-mono">
-                        {new Date(msg.createdAt).toLocaleTimeString()}
+                        {new Date(msg.createdAt).toLocaleTimeString('zh-CN')}
                       </span>
                     </div>
                     <div className="prose prose-invert prose-sm max-w-none">
@@ -225,14 +225,14 @@ export default function Chat() {
           <div className="max-w-4xl mx-auto">
             {audioBlob && (
               <div className="mb-3 p-3 bg-primary/10 border border-primary/30 rounded-lg flex items-center justify-between">
-                <span className="text-sm text-foreground">Audio recorded. Click send to transcribe and send.</span>
+                <span className="text-sm text-foreground">音频已录制。点击发送以转录并发送。</span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setAudioBlob(null)}
                   className="text-destructive"
                 >
-                  Cancel
+                  取消
                 </Button>
               </div>
             )}
@@ -259,7 +259,7 @@ export default function Chat() {
                     handleSendMessage();
                   }
                 }}
-                placeholder="Type your message or use voice input..."
+                placeholder="输入您的消息或使用语音输入..."
                 disabled={isProcessing || !!audioBlob}
                 className="flex-1 bg-input border-primary/30 text-foreground placeholder:text-muted-foreground focus:border-primary"
               />
