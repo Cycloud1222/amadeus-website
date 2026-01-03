@@ -1,0 +1,15 @@
+# Amadeus Website TODO
+
+## Core Features
+- [x] Landing page with character introduction and background
+- [x] Cyberpunk aesthetic with neon pink/cyan colors and dark theme
+- [x] AI chat interface with conversation functionality
+- [x] Chat message history display with bubbles
+- [x] Typing indicators during AI response
+- [x] Voice input with speech-to-text transcription
+- [x] Persistent chat history stored in database
+- [x] Session-based conversation resumption
+- [x] Responsive design for desktop and mobile
+- [x] Database schema for conversations and messages
+- [x] Backend API for chat operations
+- [x] LLM integration for Amadeus AI persona
