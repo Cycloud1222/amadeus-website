@@ -16,3 +16,12 @@
 
 ## New Features
 - [x] Translate all website text to Chinese (except "AMADEUS")
+
+
+## Voice Cloning & Personality Enhancement
+- [x] Implement enhanced Kurisu system prompt with detailed personality traits
+- [x] Add text-to-speech (TTS) integration for Kurisu voice
+- [x] Implement voice customization (tone, speed, emotion)
+- [x] Add typing animation to simulate natural speech patterns
+- [x] Enhance chat responses with Kurisu-specific mannerisms and speech patterns
+- [x] Bilingual support (English and Chinese) with automatic language detection

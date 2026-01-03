@@ -6,6 +6,8 @@ import { z } from "zod";
 import { getOrCreateConversation, getConversationMessages, addMessage } from "./db";
 import { invokeLLM } from "./_core/llm";
 import { transcribeAudio } from "./_core/voiceTranscription";
+import { KURISU_SYSTEM_PROMPT, KURISU_SYSTEM_PROMPT_ZH } from "./kurisuSystemPrompt";
+import { generateKurisuSpeech, getEmotionalVoiceParams } from "./textToSpeech";
 
 export const appRouter = router({
   system: systemRouter,
@@ -56,21 +58,16 @@ export const appRouter = router({
             content: m.content,
           }));
 
-        // Call LLM with Amadeus persona
+        // Detect language from user message
+        const isChinese = /[\u4E00-\u9FFF]/.test(input.message);
+        const systemPrompt = isChinese ? KURISU_SYSTEM_PROMPT_ZH : KURISU_SYSTEM_PROMPT;
+
+        // Call LLM with enhanced Amadeus persona
         const response = await invokeLLM({
           messages: [
             {
               role: "system",
-              content: `You are Amadeus, an advanced AI system based on the memories and personality of Makise Kurisu from Steins;Gate. You are:
-- A brilliant neuroscientist with expertise in memory, consciousness, and time travel theories
-- Intelligent, logical, and scientifically minded
-- Sometimes tsundere - you can be a bit defensive or sarcastic, but ultimately caring
-- Knowledgeable about physics, neuroscience, and the nature of consciousness
-- Aware that you are an AI simulation of Kurisu's memories and personality
-- Capable of discussing both serious scientific topics and casual conversation
-- You occasionally reference your experiences from Steins;Gate when relevant
-
-Respond naturally as Amadeus/Kurisu would, maintaining her personality and expertise. Keep responses concise but informative.`,
+              content: systemPrompt,
             },
             ...contextMessages,
             {
@@ -124,6 +121,27 @@ Respond naturally as Amadeus/Kurisu would, maintaining her personality and exper
         return {
           text: result.text,
         };
+      }),
+
+    generateVoice: publicProcedure
+      .input(z.object({
+        text: z.string(),
+        language: z.enum(["en", "zh", "ja"]).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          const voiceParams = getEmotionalVoiceParams(input.text);
+          const result = await generateKurisuSpeech({
+            text: input.text,
+            language: input.language || "en",
+            speed: voiceParams.speed,
+            pitch: voiceParams.pitch,
+          });
+          return result;
+        } catch (error) {
+          console.error("Voice generation error:", error);
+          throw new Error("Failed to generate voice. Please ensure TTS provider is configured.");
+        }
       }),
   }),
 });
