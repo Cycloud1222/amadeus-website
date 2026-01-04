@@ -7,7 +7,8 @@ import { getOrCreateConversation, getConversationMessages, addMessage } from "./
 import { invokeLLM } from "./_core/llm";
 import { transcribeAudio } from "./_core/voiceTranscription";
 import { KURISU_SYSTEM_PROMPT, KURISU_SYSTEM_PROMPT_ZH } from "./kurisuSystemPrompt";
-import { generateKurisuSpeech, getEmotionalVoiceParams } from "./textToSpeech";
+import { generateSpeechSiliconFlow, getEmotionalVoiceParams } from "./siliconflowTTS";
+import { invokeDeepSeek } from "./deepseekLLM";
 
 export const appRouter = router({
   system: systemRouter,
@@ -62,8 +63,8 @@ export const appRouter = router({
         const isChinese = /[\u4E00-\u9FFF]/.test(input.message);
         const systemPrompt = isChinese ? KURISU_SYSTEM_PROMPT_ZH : KURISU_SYSTEM_PROMPT;
 
-        // Call LLM with enhanced Amadeus persona
-        const response = await invokeLLM({
+        // Call DeepSeek LLM with enhanced Amadeus persona
+        const response = await invokeDeepSeek({
           messages: [
             {
               role: "system",
@@ -75,6 +76,8 @@ export const appRouter = router({
               content: input.message,
             },
           ],
+          temperature: 0.8,
+          max_tokens: 2048,
         });
 
         const assistantContent = typeof response.choices[0]?.message?.content === 'string' 
@@ -131,9 +134,9 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         try {
           const voiceParams = getEmotionalVoiceParams(input.text);
-          const result = await generateKurisuSpeech({
+          const result = await generateSpeechSiliconFlow({
             text: input.text,
-            language: input.language || "en",
+            language: (input.language || "en") as "en" | "zh" | "ja",
             speed: voiceParams.speed,
             pitch: voiceParams.pitch,
           });

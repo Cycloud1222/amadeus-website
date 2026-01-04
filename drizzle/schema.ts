@@ -51,6 +51,8 @@ export const messages = mysqlTable("messages", {
   /** 'user' for visitor messages, 'assistant' for Amadeus responses */
   role: mysqlEnum("role", ["user", "assistant"]).notNull(),
   content: text("content").notNull(),
+  /** Optional audio URL for TTS-generated voice responses */
+  audioUrl: text("audioUrl"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

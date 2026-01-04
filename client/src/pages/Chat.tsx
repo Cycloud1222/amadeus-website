@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Loader2, Mic, MicOff, Send } from "lucide-react";
+import { ArrowLeft, Loader2, Mic, MicOff, Send, Volume2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { Streamdown } from "streamdown";
@@ -12,6 +12,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   createdAt: Date;
+  audioUrl?: string;
 }
 
 export default function Chat() {
@@ -19,9 +20,11 @@ export default function Chat() {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [playingAudioId, setPlayingAudioId] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Get session ID from localStorage or create new one
   const getSessionId = () => {
@@ -43,11 +46,27 @@ export default function Chat() {
 
   const utils = trpc.useUtils();
 
+  // Generate voice mutation
+  const generateVoiceMutation = trpc.chat.generateVoice.useMutation();
+
   // Send message mutation
   const sendMessageMutation = trpc.chat.sendMessage.useMutation({
-    onSuccess: () => {
+    onSuccess: async (data) => {
       setMessage("");
       setAudioBlob(null);
+      // Generate voice for assistant response
+      if (data.assistantMessage) {
+        try {
+          const voiceResult = await generateVoiceMutation.mutateAsync({
+            text: data.assistantMessage.content,
+            language: /[\u4E00-\u9FFF]/.test(data.assistantMessage.content) ? "zh" : "en",
+          });
+          // Update the message with audio URL
+          data.assistantMessage.audioUrl = voiceResult.audioUrl;
+        } catch (error) {
+          console.error("Failed to generate voice:", error);
+        }
+      }
       utils.chat.getHistory.invalidate({ sessionId });
     },
   });
@@ -129,6 +148,13 @@ export default function Chat() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* Hidden audio element for playback */}
+      <audio
+        ref={audioRef}
+        onEnded={() => setPlayingAudioId(null)}
+        className="hidden"
+      />
+
       {/* Header */}
       <header className="border-b border-primary/30 bg-card/50 backdrop-blur-sm">
         <div className="container py-4">
@@ -172,7 +198,7 @@ export default function Chat() {
                 </p>
               </div>
             ) : (
-              messages.map((msg: Message, idx: number) => (
+              messages.map((msg: any, idx: number) => (
                 <div
                   key={msg.id || `temp-${idx}`}
                   className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
@@ -195,6 +221,29 @@ export default function Chat() {
                     <div className="prose prose-invert prose-sm max-w-none">
                       <Streamdown>{msg.content}</Streamdown>
                     </div>
+                    {msg.role === "assistant" && msg.audioUrl && (
+                      <div className="mt-3 flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            if (playingAudioId === msg.id) {
+                              if (audioRef.current) audioRef.current.pause();
+                              setPlayingAudioId(null);
+                            } else {
+                              if (audioRef.current) audioRef.current.pause();
+                              if (audioRef.current) {
+                                audioRef.current.src = msg.audioUrl!;
+                                audioRef.current.play();
+                              }
+                              setPlayingAudioId(msg.id);
+                            }
+                          }}
+                          className="text-xs px-2 py-1 rounded bg-primary/20 border border-primary/50 hover:bg-primary/30 transition-colors flex items-center gap-1"
+                        >
+                          <Volume2 className="h-3 w-3" />
+                          {playingAudioId === msg.id ? "暂停" : "播放"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

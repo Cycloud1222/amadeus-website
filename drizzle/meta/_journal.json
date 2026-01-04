@@ -15,6 +15,13 @@
       "when": 1767443223685,
       "tag": "0001_chilly_ben_urich",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1767446082106,
+      "tag": "0002_luxuriant_supernaut",
+      "breakpoints": true
     }
   ]
 }
